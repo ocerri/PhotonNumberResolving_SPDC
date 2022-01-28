@@ -110,6 +110,6 @@ def countProbai12(mu, eta_i, eta_1, eta_2, k=0, lambdas=np.ones(1)):
 
 
 def g2_0(mu, eta_i, eta_1, eta_2, k=0, lambdas=np.ones(1)):
-    out = countProbai12(mu, eta_i, eta_1, eta_2, k, lambdas) * countProbaIdler(mu, eta, k, lambdas)
+    out = countProbai12(mu, eta_i, eta_1, eta_2, k, lambdas) * countProbaIdler(mu, eta_i, k, lambdas)
     out /= countProbaiS(mu, eta_i, eta_1, k, lambdas) * countProbaiS(mu, eta_i, eta_2, k, lambdas)
     return out
