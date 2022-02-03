@@ -5,7 +5,8 @@ import numpy as np
 #################
 
 def refractive_index_ppln(wavelength):
-    w2 = np.square(wavelength)
+    w_in_um = 1e-3*wavelength
+    w2 = np.square(w_in_um)
     out =  1+(2.6734*w2)/(w2 - 0.01764)
     out += (1.2290*w2)/(w2 - 0.05914)
     out += (12.614*w2)/(w2 - 474.6)
