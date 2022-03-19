@@ -25,27 +25,24 @@ def detector_profile(w_idler, w_signal, sigma_d, w_0=1550.):
 
 
 def pump_envelope(omega_i, omega_s, omega_0, sigma_p):
-    #return gaussian2D(omega_i,omega_s,omega_0, omega_0, sigma_p, sigma_p)
     nu_i = omega_i - omega_0
     nu_s = omega_s - omega_0
-    # return np.exp(-(nu_i+nu_s)**2/(sigma_p**2)) #Original line
-
-    # No normalization in this gaussian? Yes we could
     aux = (nu_i+nu_s)/sigma_p
     return np.exp(-0.5*np.square(aux))
 
+def phase_mismatch(w_idler, w_signal, w_0): #nanometers
+    w_pump = w_0/2
+    n_i = refractive_index_ppln(w_idler)
+    n_s = refractive_index_ppln(w_signal)
+    n_p = refractive_index_ppln(w_pump) #should be index of refraction @ 770 nm right?
+    k_i, k_s, k_p = 2*np.pi/w_idler, 2*np.pi/w_signal, 2*np.pi/w_pump
+    return n_p*k_p - n_s*k_s - n_i*k_i #1/nm
 
-def sinc2(omega_i, omega_s, omega_0, gamma):
-    # No 2pi*c to go from omega to wavelength?
-    n_i = refractive_index_ppln(1/omega_i)
-    n_s = refractive_index_ppln(1/omega_s)
-    n_0 = refractive_index_ppln(1/omega_0)
-    # L = 0.01*10**(-2)*10**9
-    L = 100000.
-    # return np.sinc(L*np.pi*(n_i*omega_i + n_s*omega_s -2*n_0*omega_0 +gamma))**2#np.sinc((nu_i+nu_s)/(2*gamma))**2
-    aux = L*np.pi*(n_i*omega_i + n_s*omega_s -2*n_0*omega_0 - gamma)
-    # how to normalize that?
-    return np.square(np.sinc(aux))
+def sinc2(omega_i, omega_s, omega_0, gamma, L):
+    c = 3.*10**8 * 10**9 #nm/s
+    twoPiC = 2.*np.pi*c
+    delta_k = phase_mismatch(twoPiC/omega_i, twoPiC/omega_s, twoPiC/omega_0) - gamma
+    return np.square(np.sinc(0.5*L*delta_k))
 
 
 def cwdm_profile(x, y, sigma_x=13., sigma_y=13.):
@@ -53,27 +50,19 @@ def cwdm_profile(x, y, sigma_x=13., sigma_y=13.):
     return gaussian2D(x, y, 1530, 1550, sigma_x, sigma_y) + gaussian2D(x, y, 1550, 1530, sigma_x, sigma_y)
 
 
-def spdc_profile(w_idler, w_signal, w_central, gamma, sigma_p=0.03):
-    # sigma_p = 3*10**(8)*100*10**(-12)
-    omega_i, omega_s, omega_0 = 1./w_idler, 1./w_signal, 1./w_central
-    return sinc2(omega_i, omega_s, omega_0, gamma)*pump_envelope(omega_i, omega_s, omega_0,sigma_p)
+def spdc_profile(w_idler, w_signal, w_central, L, sigma_p=2*np.pi/40e-12, gamma=3.9e-4):
+    c = 3.*10**8 * 10**9 #nm/s
+    twoPiC = 2.*np.pi*c
+    omega_i, omega_s, omega_0 = twoPiC/w_idler, twoPiC/w_signal, twoPiC/w_central
+    return sinc2(omega_i, omega_s, omega_0, gamma, L)*pump_envelope(omega_i, omega_s, omega_0, sigma_p)
 
 
-def joint_spectrum(w_idler, w_signal, gamma, A, sigma_d=53., w_central=1540., sigma_p=0.03):
+def joint_spectrum(w_idler, w_signal, gamma, A, sigma_d=53., w_central=1540., sigma_p=2e10*np.pi, L=1e7):
     out =  A*detector_profile(w_idler, w_signal, sigma_d)
-    out *= spdc_profile(w_idler, w_signal, w_central, gamma, sigma_p)
+    out *= spdc_profile(w_idler, w_signal, w_central, L=L, gamma=gamma, sigma_p=sigma_p)
     return out
-
-def _joint_spectrum(M, *args):
-    x, y = M[:,0], M[:,1]
-    return joint_spectrum(x,y,*args)
-
 
 def joint_spectrum_noisy(w_idler, w_signal, gamma, sigma_noise, A, A_noise, sigma_d=53., w_central=1540.):
     out = joint_spectrum(w_idler, w_signal, gamma, A, sigma_d, w_central)
     out += gaussian2D(w_idler, w_signal, w_central, w_central, sigma_noise, sigma_noise)
     return out
-
-def _joint_spectrum_noisy(M, *args):
-    x, y = M[:,0], M[:,1]
-    return joint_spectrum_noisy(x,y,*args)
