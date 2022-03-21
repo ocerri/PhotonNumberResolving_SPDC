@@ -19,19 +19,20 @@ idler_wavelengths = []
 signal_wavelengths = []
 coincidences = []
 
-with open('2D_Covesion_JSI_20211030.csv') as csvfile:
-    filereader = csv.reader(csvfile, delimiter=',')
-    i = 0
-    for row in filereader:
-        if i==0:
-            signal_wavelengths_row=np.array(row[1:-1]).astype(float)
-        else:
-            for j in range(len(row)-2):
-                if len(row[j+1])>0:
-                    signal_wavelengths.append(signal_wavelengths_row[j])
-                    idler_wavelengths.append(row[0])
-                    coincidences.append(row[j+1])
-        i +=1
+if __name__ == '__main__':
+    with open('2D_Covesion_JSI_20211030.csv') as csvfile:
+        filereader = csv.reader(csvfile, delimiter=',')
+        i = 0
+        for row in filereader:
+            if i==0:
+                signal_wavelengths_row=np.array(row[1:-1]).astype(float)
+            else:
+                for j in range(len(row)-2):
+                    if len(row[j+1])>0:
+                        signal_wavelengths.append(signal_wavelengths_row[j])
+                        idler_wavelengths.append(row[0])
+                        coincidences.append(row[j+1])
+            i +=1
 
 signal_wavelengths = np.array(signal_wavelengths, dtype = np.float)
 idler_wavelengths = np.array(idler_wavelengths, dtype = np.float)

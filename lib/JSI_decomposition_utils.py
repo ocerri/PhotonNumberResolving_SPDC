@@ -42,7 +42,7 @@ def sinc2(omega_i, omega_s, omega_0, gamma, L):
     c = 3.*10**8 * 10**9 #nm/s
     twoPiC = 2.*np.pi*c
     delta_k = phase_mismatch(twoPiC/omega_i, twoPiC/omega_s, twoPiC/omega_0) - gamma
-    return np.square(np.sinc(0.5*L*delta_k))
+    return np.square(np.sinc(0.5*L*delta_k/np.pi))
 
 
 def cwdm_profile(x, y, sigma_x=13., sigma_y=13.):
