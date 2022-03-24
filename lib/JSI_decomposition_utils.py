@@ -67,12 +67,12 @@ def spdc_profile(w_idler, w_signal, w_central, L, sigma_p=2*np.pi/40e-12, gamma=
     return sinc2(omega_i, omega_s, omega_0, sigma_p, gamma, L)*pump_envelope(omega_i, omega_s, omega_0, sigma_p)
 
 
-def joint_spectrum(w_idler, w_signal, gamma, A, sigma_d=53., w_central=1540., sigma_p=2e10*np.pi, L=1e7):
+def joint_spectrum(w_idler, w_signal, gamma, A, sigma_d=53., w_central=1540., sigma_p=2e10*np.pi, L=5e6):
     out =  A*detector_profile(w_idler, w_signal, sigma_d)
     out *= spdc_profile(w_idler, w_signal, w_central, L=L, gamma=gamma, sigma_p=sigma_p)
     return out
 
-def joint_spectrum_noisy(w_idler, w_signal, gamma, sigma_noise, A, A_noise, sigma_d=53., w_central=1540.):
-    out = joint_spectrum(w_idler, w_signal, gamma, A, sigma_d, w_central)
-    out += gaussian2D(w_idler, w_signal, w_central, w_central, sigma_noise, sigma_noise)
+def joint_spectrum_bkg(w_idler, w_signal, gamma, A, sigma_d=53., w_central=1540., sigma_p=2e10*np.pi, L=5e6, A_bkg=1000):
+    out = joint_spectrum(w_idler, w_signal, gamma, A, sigma_d, w_central, sigma_p, L)
+    out += A_bkg*gaussian2D(w_idler, w_signal, w_central, w_central, sigma_d, sigma_d)
     return out
