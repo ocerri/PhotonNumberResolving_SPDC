@@ -48,11 +48,13 @@ def sinc2_monochromatic(omega_i, omega_s, omega_0, gamma, L):
 def sinc2( omega_i, omega_s, omega_0, sigma_0, gamma, L, nSigConv=3, nPointsConv=10):
     aux = np.linspace(-nSigConv, nSigConv, nPointsConv)
     out = 0
+    wSum = 0
     for z_low, z_high in zip(aux[:-1], aux[1:]):
         w = 0.5*(erf(z_high/np.sqrt(2)) - erf(z_low/np.sqrt(2)))
         omega_o_aux = omega_0 + sigma_0 * 0.5*(z_low + z_high)
         out += w*sinc2_monochromatic(omega_i, omega_s, omega_o_aux, gamma, L)
-    return out
+        wSum += w
+    return out/wSum
 
 
 def cwdm_profile(x, y, sigma_x=13., sigma_y=13.):
@@ -64,7 +66,8 @@ def spdc_profile(w_idler, w_signal, w_central, L, sigma_p=2*np.pi/40e-12, gamma=
     c = 3.*10**8 * 10**9 #nm/s
     twoPiC = 2.*np.pi*c
     omega_i, omega_s, omega_0 = twoPiC/w_idler, twoPiC/w_signal, twoPiC/w_central
-    return sinc2(omega_i, omega_s, omega_0, sigma_p, gamma, L)*pump_envelope(omega_i, omega_s, omega_0, sigma_p)
+    return sinc2_monochromatic(omega_i, omega_s, omega_0, gamma, L)*pump_envelope(omega_i, omega_s, omega_0, sigma_p)
+    # return sinc2(omega_i, omega_s, omega_0, sigma_p, gamma, L)*pump_envelope(omega_i, omega_s, omega_0, sigma_p)
 
 
 def joint_spectrum(w_idler, w_signal, gamma, A, sigma_d=53., w_central=1540., sigma_p=2e10*np.pi, L=5e6):
